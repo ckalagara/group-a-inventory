@@ -2,6 +2,13 @@
 
 ## Setup
 
+### Docker
+```
+docker network create app-network
+docker run --network app-network --name mongodb -p 27017:27017 -d mongodb/mongodb-community-server:latest
+docker run --network app-network -p 50052:50052 group-a-inventory
+```
+
 ### protoc
 ```
  protoc --go_out=. --go-grpc_out=. proto/inventory.proto
