@@ -23,7 +23,7 @@ func main() {
 	log.Printf("Creating gRPC server: %v", time.Now())
 	server := grpc.NewServer()
 	reflection.Register(server)
-	pb.RegisterServiceServer(server, core.NewService(ctx, "mongodb://localhost:27017"))
+	pb.RegisterServiceServer(server, core.NewService(ctx, "mongodb://mongodb:27017"))
 	log.Printf("Serving gRPC server: %v", time.Now())
 
 	err = server.Serve(listener)
