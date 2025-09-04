@@ -29,24 +29,21 @@ type Store struct {
 }
 
 func NewService(ctx context.Context, mongoURI string) *Service {
-	// Set client options for MongoDB connection
+
 	clientOptions := options.Client().ApplyURI(mongoURI)
 
-	// Create a new MongoDB client
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Failed to create Mongo client: %v", err)
 		return nil
 	}
 
-	// Ping the MongoDB server to check if the connection is successful
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 		return nil
 	}
 
-	// Initialize the collection to interact with 'items' in the 'inventorydb' database
 	itemsCollection := client.Database(databaseName).Collection(collectionName)
 
 	log.Println("Successfully connected to MongoDB")
@@ -56,8 +53,6 @@ func NewService(ctx context.Context, mongoURI string) *Service {
 
 func (s *Service) AddItem(ctx context.Context, req *pb.AddItemRequest) (*pb.AddItemResponse, error) {
 	item := req.GetItem()
-
-	// Insert the item into MongoDB
 	_, err := s.store.collection.InsertOne(ctx, item)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to add item: %v", err)
@@ -120,9 +115,8 @@ func (s *Service) Health(ctx context.Context, req *pb.HealthRequest) (*pb.Health
 	return &pb.HealthResponse{Status: "Service is healthy"}, nil
 }
 
-// StreamItems is a server-streaming RPC
 func (s *Service) StreamItems(req *pb.GetItemRequest, stream pb.Service_StreamItemsServer) error {
-	filter := bson.D{{Key: "id", Value: req.GetId()}}
+	filter := bson.D{{Key: "name", Value: req.GetId()}}
 
 	cursor, err := s.store.collection.Find(context.Background(), filter)
 	if err != nil {
@@ -130,19 +124,15 @@ func (s *Service) StreamItems(req *pb.GetItemRequest, stream pb.Service_StreamIt
 	}
 	defer cursor.Close(context.Background())
 
-	// Stream each item to the client
 	for cursor.Next(context.Background()) {
 		var item pb.Item
 		if err := cursor.Decode(&item); err != nil {
 			return status.Errorf(codes.Internal, "Error decoding item: %v", err)
 		}
 
-		// Send each item to the client over the stream
 		if err := stream.Send(&item); err != nil {
 			return status.Errorf(codes.Internal, "Error sending item to client: %v", err)
 		}
-
-		// Simulate delay between responses (optional)
 		time.Sleep(1 * time.Second)
 	}
 
