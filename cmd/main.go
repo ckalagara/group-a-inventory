@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	log.Printf("Starting gRPC server on port 50052: %v", time.Now())
+	ctx := context.Background()
 	listener, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatalf("Failed to listen with error: %v", err)
@@ -21,7 +23,7 @@ func main() {
 	log.Printf("Creating gRPC server: %v", time.Now())
 	server := grpc.NewServer()
 	reflection.Register(server)
-	pb.RegisterServiceServer(server, core.NewService("mongodb://localhost:27017"))
+	pb.RegisterServiceServer(server, core.NewService(ctx, "mongodb://localhost:27017"))
 	log.Printf("Serving gRPC server: %v", time.Now())
 
 	err = server.Serve(listener)

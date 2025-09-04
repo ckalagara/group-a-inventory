@@ -28,19 +28,19 @@ type Store struct {
 	collection *mongo.Collection
 }
 
-func NewService(mongoURI string) *Service {
+func NewService(ctx context.Context, mongoURI string) *Service {
 	// Set client options for MongoDB connection
 	clientOptions := options.Client().ApplyURI(mongoURI)
 
 	// Create a new MongoDB client
-	client, err := mongo.Connect(context.Background(), clientOptions)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Failed to create Mongo client: %v", err)
 		return nil
 	}
 
 	// Ping the MongoDB server to check if the connection is successful
-	err = client.Ping(context.Background(), nil)
+	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 		return nil
@@ -67,7 +67,7 @@ func (s *Service) AddItem(ctx context.Context, req *pb.AddItemRequest) (*pb.AddI
 }
 
 func (s *Service) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
-	filter := bson.D{{"id", req.GetId()}}
+	filter := bson.D{{Key: "id", Value: req.GetId()}}
 	var item pb.Item
 	err := s.store.collection.FindOne(ctx, filter).Decode(&item)
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *Service) ListItems(ctx context.Context, req *pb.ListItemsRequest) (*pb.
 }
 
 func (s *Service) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*pb.DeleteItemResponse, error) {
-	filter := bson.D{{"id", req.GetId()}}
+	filter := bson.D{{Key: "id", Value: req.GetId()}}
 	result, err := s.store.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to delete item: %v", err)
@@ -122,7 +122,7 @@ func (s *Service) Health(ctx context.Context, req *pb.HealthRequest) (*pb.Health
 
 // StreamItems is a server-streaming RPC
 func (s *Service) StreamItems(req *pb.GetItemRequest, stream pb.Service_StreamItemsServer) error {
-	filter := bson.D{{"id", req.GetId()}} // For example, you could stream based on specific ID
+	filter := bson.D{{Key: "id", Value: req.GetId()}}
 
 	cursor, err := s.store.collection.Find(context.Background(), filter)
 	if err != nil {
