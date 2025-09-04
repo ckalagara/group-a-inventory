@@ -1,3 +1,4 @@
+
 syntax = "proto3";
 
 package inventory;
@@ -53,6 +54,7 @@ service Service {
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
   rpc DeleteItem(DeleteItemRequest) returns (DeleteItemResponse);
   rpc Health(HealthRequest) returns (HealthResponse);
+  rpc StreamItems(GetItemRequest) returns (stream Item);
 }
 
 message HealthRequest {

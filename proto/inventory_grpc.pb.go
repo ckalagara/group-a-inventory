@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Service_AddItem_FullMethodName    = "/inventory.Service/AddItem"
-	Service_GetItem_FullMethodName    = "/inventory.Service/GetItem"
-	Service_ListItems_FullMethodName  = "/inventory.Service/ListItems"
-	Service_DeleteItem_FullMethodName = "/inventory.Service/DeleteItem"
-	Service_Health_FullMethodName     = "/inventory.Service/Health"
+	Service_AddItem_FullMethodName     = "/inventory.Service/AddItem"
+	Service_GetItem_FullMethodName     = "/inventory.Service/GetItem"
+	Service_ListItems_FullMethodName   = "/inventory.Service/ListItems"
+	Service_DeleteItem_FullMethodName  = "/inventory.Service/DeleteItem"
+	Service_Health_FullMethodName      = "/inventory.Service/Health"
+	Service_StreamItems_FullMethodName = "/inventory.Service/StreamItems"
 )
 
 // ServiceClient is the client API for Service service.
@@ -37,6 +38,7 @@ type ServiceClient interface {
 	ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error)
 	DeleteItem(ctx context.Context, in *DeleteItemRequest, opts ...grpc.CallOption) (*DeleteItemResponse, error)
 	Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
+	StreamItems(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Item], error)
 }
 
 type serviceClient struct {
@@ -97,6 +99,25 @@ func (c *serviceClient) Health(ctx context.Context, in *HealthRequest, opts ...g
 	return out, nil
 }
 
+func (c *serviceClient) StreamItems(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Item], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Service_ServiceDesc.Streams[0], Service_StreamItems_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GetItemRequest, Item]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Service_StreamItemsClient = grpc.ServerStreamingClient[Item]
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility.
@@ -108,6 +129,7 @@ type ServiceServer interface {
 	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
 	DeleteItem(context.Context, *DeleteItemRequest) (*DeleteItemResponse, error)
 	Health(context.Context, *HealthRequest) (*HealthResponse, error)
+	StreamItems(*GetItemRequest, grpc.ServerStreamingServer[Item]) error
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -132,6 +154,9 @@ func (UnimplementedServiceServer) DeleteItem(context.Context, *DeleteItemRequest
 }
 func (UnimplementedServiceServer) Health(context.Context, *HealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
+}
+func (UnimplementedServiceServer) StreamItems(*GetItemRequest, grpc.ServerStreamingServer[Item]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamItems not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 func (UnimplementedServiceServer) testEmbeddedByValue()                 {}
@@ -244,6 +269,17 @@ func _Service_Health_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_StreamItems_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetItemRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ServiceServer).StreamItems(m, &grpc.GenericServerStream[GetItemRequest, Item]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Service_StreamItemsServer = grpc.ServerStreamingServer[Item]
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -272,6 +308,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_Health_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamItems",
+			Handler:       _Service_StreamItems_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/inventory.proto",
 }

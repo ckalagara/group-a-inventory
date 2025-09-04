@@ -545,14 +545,15 @@ const file_proto_inventory_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x0f\n" +
 	"\rHealthRequest\"(\n" +
 	"\x0eHealthResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status2\xdf\x02\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status2\x9c\x03\n" +
 	"\aService\x12@\n" +
 	"\aAddItem\x12\x19.inventory.AddItemRequest\x1a\x1a.inventory.AddItemResponse\x12@\n" +
 	"\aGetItem\x12\x19.inventory.GetItemRequest\x1a\x1a.inventory.GetItemResponse\x12F\n" +
 	"\tListItems\x12\x1b.inventory.ListItemsRequest\x1a\x1c.inventory.ListItemsResponse\x12I\n" +
 	"\n" +
 	"DeleteItem\x12\x1c.inventory.DeleteItemRequest\x1a\x1d.inventory.DeleteItemResponse\x12=\n" +
-	"\x06Health\x12\x18.inventory.HealthRequest\x1a\x19.inventory.HealthResponseB\tZ\a./protob\x06proto3"
+	"\x06Health\x12\x18.inventory.HealthRequest\x1a\x19.inventory.HealthResponse\x12;\n" +
+	"\vStreamItems\x12\x19.inventory.GetItemRequest\x1a\x0f.inventory.Item0\x01B\tZ\a./protob\x06proto3"
 
 var (
 	file_proto_inventory_proto_rawDescOnce sync.Once
@@ -590,13 +591,15 @@ var file_proto_inventory_proto_depIdxs = []int32{
 	5,  // 6: inventory.Service.ListItems:input_type -> inventory.ListItemsRequest
 	7,  // 7: inventory.Service.DeleteItem:input_type -> inventory.DeleteItemRequest
 	9,  // 8: inventory.Service.Health:input_type -> inventory.HealthRequest
-	2,  // 9: inventory.Service.AddItem:output_type -> inventory.AddItemResponse
-	4,  // 10: inventory.Service.GetItem:output_type -> inventory.GetItemResponse
-	6,  // 11: inventory.Service.ListItems:output_type -> inventory.ListItemsResponse
-	8,  // 12: inventory.Service.DeleteItem:output_type -> inventory.DeleteItemResponse
-	10, // 13: inventory.Service.Health:output_type -> inventory.HealthResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
+	3,  // 9: inventory.Service.StreamItems:input_type -> inventory.GetItemRequest
+	2,  // 10: inventory.Service.AddItem:output_type -> inventory.AddItemResponse
+	4,  // 11: inventory.Service.GetItem:output_type -> inventory.GetItemResponse
+	6,  // 12: inventory.Service.ListItems:output_type -> inventory.ListItemsResponse
+	8,  // 13: inventory.Service.DeleteItem:output_type -> inventory.DeleteItemResponse
+	10, // 14: inventory.Service.Health:output_type -> inventory.HealthResponse
+	0,  // 15: inventory.Service.StreamItems:output_type -> inventory.Item
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
